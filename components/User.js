@@ -1,5 +1,5 @@
 import React from 'react';
-import Image from 'next/image';
+import Image from 'react-bootstrap/Image';
 import { Button } from 'react-bootstrap';
 import { useAuth } from '../utils/context/authContext';
 import { signOut } from '../utils/auth';
