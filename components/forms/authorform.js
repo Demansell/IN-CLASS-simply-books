@@ -5,7 +5,7 @@ import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Form from 'react-bootstrap/Form';
 import { Button } from 'react-bootstrap';
 import { useAuth } from '../../utils/context/authContext';
-import { createAuthor, getAuthors, updateAuthor } from '../../api/authorData';
+import { createAuthor, updateAuthor } from '../../api/authorData';
 
 const initialState = {
   first_name: '',
@@ -16,13 +16,10 @@ const initialState = {
 
 function AuthorForm({ obj }) {
   const [formInput, setFormInput] = useState(initialState);
-  const [setAuthors] = useState([]);
   const router = useRouter();
   const { user } = useAuth();
 
   useEffect(() => {
-    getAuthors(user.uid).then(setAuthors);
-
     if (obj.firebaseKey) setFormInput(obj);
   }, [obj, user]);
 
@@ -41,8 +38,11 @@ function AuthorForm({ obj }) {
         .then(() => router.push(`/author/${obj.firebaseKey}`));
     } else {
       const payload = { ...formInput, uid: user.uid };
-      createAuthor(payload).then(() => {
-        router.push('/');
+      createAuthor(payload).then(({ name }) => {
+        const patchPayload = { firebaseKey: name };
+        updateAuthor(patchPayload).then(() => {
+          router.push('/');
+        });
       });
     }
   };
@@ -56,7 +56,7 @@ function AuthorForm({ obj }) {
         <Form.Control
           type="text"
           placeholder="Enter a First name"
-          name="First name"
+          name="first_name"
           value={formInput.first_name}
           onChange={handleChange}
           required
@@ -68,7 +68,7 @@ function AuthorForm({ obj }) {
         <Form.Control
           type="text"
           placeholder="Last Name"
-          name="Last Name"
+          name="last_name"
           value={formInput.last_name}
           onChange={handleChange}
           required
@@ -79,9 +79,9 @@ function AuthorForm({ obj }) {
       <FloatingLabel controlId="floatingTextarea" label="Email" className="mb-3">
         <Form.Control
           as="textarea"
-          placeholder="Email"
+          placeholder="email"
           style={{ height: '100px' }}
-          name="Email"
+          name="email"
           value={formInput.email}
           onChange={handleChange}
           required
@@ -93,13 +93,13 @@ function AuthorForm({ obj }) {
         className="text-white mb-3"
         type="switch"
         id="Favorite"
-        name="Favorite"
+        name="favorite"
         label="Favorite?"
         checked={formInput.Favorite}
         onChange={(e) => {
           setFormInput((prevState) => ({
             ...prevState,
-            sale: e.target.checked,
+            favorite: e.target.checked,
           }));
         }}
       />

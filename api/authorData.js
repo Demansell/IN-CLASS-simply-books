@@ -1,24 +1,23 @@
-import axios from 'axios';
 import { clientCredentials } from '../utils/client';
 
-const dbUrl = clientCredentials.databaseURL;
+const endpoint = clientCredentials.databaseURL;
 
 // FIXME:  GET ALL AUTHORS
 const getAuthors = (uid) => new Promise((resolve, reject) => {
-  axios.get(`${dbUrl}/authors.json?orderBy="uid"&equalTo="${uid}"`)
-    .then((response) => {
-      if (response.data) {
-        resolve(Object.values(response.data));
-      } else {
-        resolve([]);
-      }
-    })
-    .catch((error) => reject(error));
+  fetch(`${endpoint}/authors.json?orderBy="uid"&equalTo="${uid}"`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => resolve(Object.values(data)))
+    .catch(reject);
 });
 
 // FIXME: CREATE AUTHOR
 const createAuthor = (payload) => new Promise((resolve, reject) => {
-  fetch(`${dbUrl}/authors.json`, {
+  fetch(`${endpoint}/authors.json`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -30,15 +29,22 @@ const createAuthor = (payload) => new Promise((resolve, reject) => {
     .catch(reject);
 });
 
+// FIXME: GET SINGLE AUTHOR
 const getSingleAuthor = (firebaseKey) => new Promise((resolve, reject) => {
-  axios.get(`${dbUrl}/authors/${firebaseKey}.json`)
-    .then((response) => resolve(response.data))
+  fetch(`${endpoint}/authors/${firebaseKey}.json`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    }, // you technically do not need the options object for GET requests, but using it here for consistency
+  })
+    .then((response) => response.json())
+    .then((data) => resolve(data)) // will resolve a single object
     .catch(reject);
 });
 
 // FIXME: DELETE AUTHOR
 const deleteSingleAuthor = (firebaseKey) => new Promise((resolve, reject) => {
-  fetch(`${dbUrl}/authors/${firebaseKey}.json`, {
+  fetch(`${endpoint}/authors/${firebaseKey}.json`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -51,7 +57,7 @@ const deleteSingleAuthor = (firebaseKey) => new Promise((resolve, reject) => {
 
 // FIXME: UPDATE AUTHOR
 const updateAuthor = (payload) => new Promise((resolve, reject) => {
-  fetch(`${dbUrl}/authors/${payload.firebaseKey}.json`, {
+  fetch(`${endpoint}/authors/${payload.firebaseKey}.json`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -65,7 +71,7 @@ const updateAuthor = (payload) => new Promise((resolve, reject) => {
 
 // TODO: GET A SINGLE AUTHOR'S BOOKS
 const getAuthorBooks = (firebaseKey) => new Promise((resolve, reject) => {
-  fetch(`${dbUrl}/books.json?orderBy="author_id"&equalTo="${firebaseKey}"`, {
+  fetch(`${endpoint}/books.json?orderBy="author_id"&equalTo="${firebaseKey}"`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -76,6 +82,22 @@ const getAuthorBooks = (firebaseKey) => new Promise((resolve, reject) => {
     .catch(reject);
 });
 
+// filter by favorite author
+const favAuthors = (uid) => new Promise((resolve, reject) => {
+  fetch(`${endpoint}/authors.json?orderBy="uid"&equalTo="${uid}"`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      const favAuth = Object.values(data).filter((item) => item.favorite);
+      resolve(favAuth);
+    })
+    .catch(reject);
+});
+
 export {
   getAuthors,
   createAuthor,
@@ -83,4 +105,5 @@ export {
   deleteSingleAuthor,
   updateAuthor,
   getAuthorBooks,
+  favAuthors,
 };
